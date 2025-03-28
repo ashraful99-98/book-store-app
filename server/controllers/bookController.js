@@ -1,7 +1,7 @@
 const Book = require("../models/Book");
 const { faker } = require("@faker-js/faker");
 
-// Generate fake books
+// Generate Fake Books
 const generateBooks = (seed, page, likesAvg, reviewsAvg) => {
     faker.seed(parseInt(seed) + page);
     let books = [];
@@ -20,37 +20,18 @@ const generateBooks = (seed, page, likesAvg, reviewsAvg) => {
     return books;
 };
 
-// Fetch books (from MongoDB or generate fake ones)
-const getBooks = async (req, res) => {
-    const { seed, page = 0, likes = 5, reviews = 3 } = req.query;
-
-    if (!seed) return res.status(400).json({ error: "Seed value is required" });
-
-    let books = generateBooks(seed, parseInt(page), parseFloat(likes), parseFloat(reviews));
-
-    // Save generated books to MongoDB
-    await Book.insertMany(books);
-
-    res.json(books);
-};
-
-// Create a new book
-const createBook = async (req, res) => {
+// Get All Books (from MongoDB)
+const getAllBooks = async (req, res) => {
     try {
-        const book = new Book(req.body);
-        // const existbook = new Book.findById({ title });
-        // if (book === existbook) {
-        //     res.status(401).json({ error: "Book is already exist in database." })
-        // }
-        await book.save();
-        res.status(201).json(book);
+        const books = await Book.find();
+        res.json(books);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Get a single book by ID
-const getBookById = async (req, res) => {
+// Get a Single Book by ID
+const getSingleBook = async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
         if (!book) return res.status(404).json({ error: "Book not found" });
@@ -60,7 +41,18 @@ const getBookById = async (req, res) => {
     }
 };
 
-// Update a book
+// Add a Book to MongoDB
+const createBook = async (req, res) => {
+    try {
+        const book = new Book(req.body);
+        await book.save();
+        res.status(201).json(book);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Update a Book
 const updateBook = async (req, res) => {
     try {
         const book = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -71,7 +63,7 @@ const updateBook = async (req, res) => {
     }
 };
 
-// Delete a book
+// Delete a Book
 const deleteBook = async (req, res) => {
     try {
         const book = await Book.findByIdAndDelete(req.params.id);
@@ -82,4 +74,4 @@ const deleteBook = async (req, res) => {
     }
 };
 
-module.exports = { getBooks, createBook, getBookById, updateBook, deleteBook };
+module.exports = { getAllBooks, getSingleBook, createBook, updateBook, deleteBook };
