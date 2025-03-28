@@ -10,13 +10,15 @@ dotenv.config();
 
 
 const app = express();
-app.use(
-    cors({
-        origin: process.env.ORIGIN || 'http://localhost:3000',
-        credentials: true,
-    })
-);
-app.use(express.json());
+// app.use(
+//     cors({
+//         origin: process.env.ORIGIN || 'http://localhost:3000',
+//         credentials: true,
+//     })
+// );
+
+app.use(cors({ origin: "http://localhost:3000" }));
+
 
 const MONGO_URI = "mongodb+srv://bookStoreAppServer:eyw1oPKpBpLva7np@bookstoreapp.eqwxrms.mongodb.net/?retryWrites=true&w=majority&appName=bookStoreApp";
 

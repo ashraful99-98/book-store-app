@@ -1,77 +1,46 @@
-const Book = require("../models/Book");
 const { faker } = require("@faker-js/faker");
 
-// Generate Fake Books
-const generateBooks = (seed, page, likesAvg, reviewsAvg) => {
-    faker.seed(parseInt(seed) + page);
-    let books = [];
+// Function to generate books dynamically
+const generateBooks = (seed, page, region, reviewsCount) => {
+    faker.seed(Number(seed) + page);
+    faker.locale = region;
 
+    const books = [];
     for (let i = 0; i < 20; i++) {
-        books.push({
-            isbn: faker.string.numeric(13),
-            title: faker.lorem.words(3),
-            author: faker.person.fullName(),
-            publisher: faker.company.name(),
-            likes: Math.round(likesAvg),
-            reviews: Math.random() < reviewsAvg ? Math.floor(reviewsAvg) + (Math.random() < (reviewsAvg % 1) ? 1 : 0) : 0,
-        });
+        const isbn = faker.string.numeric(13);
+        const title = faker.lorem.words(3);
+        const author = faker.person.fullName();
+        const publisher = faker.company.name();
+        const cover = faker.image.urlLoremFlickr({ category: "books" });
+        const likes = faker.number.int({ min: 0, max: 100 });
+
+        let reviews = [];
+        if (reviewsCount > 0) {
+            for (let j = 0; j < reviewsCount; j++) {
+                reviews.push({
+                    text: faker.lorem.sentence(),
+                    author: faker.person.fullName(),
+                    company: faker.company.name(),
+                });
+            }
+        }
+
+        books.push({ isbn, title, author, publisher, cover, likes, reviews });
     }
 
     return books;
 };
 
-// Get All Books (from MongoDB)
-const getAllBooks = async (req, res) => {
+// Controller to return generated books
+const getBooks = async (req, res) => {
     try {
-        const books = await Book.find();
-        res.json(books);
+        const { seed = 12345, page = 1, region = "en", reviews = 0 } = req.query;
+        const books = generateBooks(seed, page, region, Number(reviews));
+        res.status(200).json(books);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Get a Single Book by ID
-const getSingleBook = async (req, res) => {
-    try {
-        const book = await Book.findById(req.params.id);
-        if (!book) return res.status(404).json({ error: "Book not found" });
-        res.json(book);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+module.exports = { getBooks };
 
-// Add a Book to MongoDB
-const createBook = async (req, res) => {
-    try {
-        const book = new Book(req.body);
-        await book.save();
-        res.status(201).json(book);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Update a Book
-const updateBook = async (req, res) => {
-    try {
-        const book = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!book) return res.status(404).json({ error: "Book not found" });
-        res.json(book);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Delete a Book
-const deleteBook = async (req, res) => {
-    try {
-        const book = await Book.findByIdAndDelete(req.params.id);
-        if (!book) return res.status(404).json({ error: "Book not found" });
-        res.json({ message: "Book deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-module.exports = { getAllBooks, getSingleBook, createBook, updateBook, deleteBook };
