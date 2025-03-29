@@ -13,6 +13,7 @@ const generateBooks = (seed, page, region, reviewsCount) => {
         const publisher = faker.company.name();
         const cover = faker.image.urlLoremFlickr({ category: "books" });
         const likes = faker.number.int({ min: 0, max: 100 });
+        const uploaded = new Date();
 
         let reviews = [];
         if (reviewsCount > 0) {
@@ -25,11 +26,12 @@ const generateBooks = (seed, page, region, reviewsCount) => {
             }
         }
 
-        books.push({ isbn, title, author, publisher, cover, likes, reviews });
+        books.push({ isbn, title, author, publisher, cover, likes, reviews, uploaded });
     }
 
     return books;
 };
+
 
 // Controller to return generated books
 const getBooks = async (req, res) => {
